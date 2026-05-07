@@ -36,12 +36,9 @@
         textarea { resize: vertical; min-height: 60px; }
         button { padding: 12px 28px; border-radius: 40px; border: none; font-weight: 700; text-transform: uppercase; cursor: pointer; transition: 0.2s; background: #0e6b5e; color: white; }
         button:hover { background: #0b544a; transform: translateY(-2px); }
-        
-        /* Layout baru: trend di atas, stacked bar di bawah full width */
         .trend-chart-box { background: #f8fafc; border-radius: 24px; padding: 20px; border: 1px solid #e2e8f0; margin-bottom: 24px; }
         .stacked-chart-box { background: #f8fafc; border-radius: 24px; padding: 20px; border: 1px solid #e2e8f0; margin-bottom: 24px; }
         .trend-chart-box h3, .stacked-chart-box h3 { text-transform: uppercase; font-size: 0.9rem; font-weight: 700; color: #0e6b5e; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
-        
         canvas { max-height: 400px; width: 100%; cursor: pointer; }
         .table-container { overflow-x: auto; margin-top: 20px; border-radius: 20px; border: 1px solid #e2e8f0; }
         table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
@@ -59,84 +56,22 @@
         .dept-notes { background: #f8fafc; padding: 12px 20px; border-top: 1px solid #e4edf2; }
         .dept-notes label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: #2c6979; display: block; margin-bottom: 6px; }
         @media (max-width: 780px) { .panel { padding: 18px; } th, td { font-size: 0.7rem; padding: 8px; } }
-        
-        /* Custom Tooltip */
-        .chart-tooltip {
-            position: fixed;
-            background: #1e293b;
-            color: white;
-            padding: 12px 16px;
-            border-radius: 12px;
-            font-size: 13px;
-            max-width: 350px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-            pointer-events: none;
-            z-index: 10000;
-            border-left: 4px solid #ef4444;
-            opacity: 0;
-            transition: opacity 0.2s;
-        }
+        .chart-tooltip { position: fixed; background: #1e293b; color: white; padding: 12px 16px; border-radius: 12px; font-size: 13px; max-width: 350px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); pointer-events: none; z-index: 10000; border-left: 4px solid #ef4444; opacity: 0; transition: opacity 0.2s; }
         .chart-tooltip.show { opacity: 1; }
         .chart-tooltip .tooltip-title { font-weight: bold; margin-bottom: 6px; border-bottom: 1px solid #475569; padding-bottom: 4px; }
         .chart-tooltip .tooltip-dept { margin-top: 4px; padding: 4px 0; }
         .chart-tooltip .tooltip-note { margin-top: 6px; padding-top: 6px; border-top: 1px solid #475569; color: #fbbf24; font-style: italic; }
-        
-        /* Chart dengan legend vertical di kanan */
-        .chart-with-legend {
-            display: flex;
-            gap: 20px;
-            align-items: flex-start;
-        }
+        .chart-with-legend { display: flex; gap: 20px; align-items: flex-start; }
         .chart-container { flex: 1; min-width: 0; }
-        .legend-vertical {
-            width: 220px;
-            background: #f1f5f9;
-            border-radius: 16px;
-            padding: 12px;
-            font-size: 12px;
-        }
-        .legend-vertical h4 {
-            font-size: 12px;
-            font-weight: 700;
-            margin-bottom: 10px;
-            color: #0e6b5e;
-            text-transform: uppercase;
-        }
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 6px 8px;
-            border-bottom: 1px solid #e2e8f0;
-            font-size: 11px;
-        }
-        .legend-color {
-            width: 14px;
-            height: 14px;
-            border-radius: 4px;
-            flex-shrink: 0;
-        }
+        .legend-vertical { width: 220px; background: #f1f5f9; border-radius: 16px; padding: 12px; font-size: 12px; }
+        .legend-vertical h4 { font-size: 12px; font-weight: 700; margin-bottom: 10px; color: #0e6b5e; text-transform: uppercase; }
+        .legend-item { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-bottom: 1px solid #e2e8f0; font-size: 11px; }
+        .legend-color { width: 14px; height: 14px; border-radius: 4px; flex-shrink: 0; }
         .legend-name { flex: 1; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .legend-count { font-weight: 700; color: #ef4444; background: #fee2e2; padding: 2px 6px; border-radius: 20px; font-size: 10px; }
-        
-        .submit-area {
-            margin-top: 20px;
-            display: flex;
-            justify-content: flex-end;
-            flex-direction: column;
-            align-items: flex-end;
-            gap: 12px;
-        }
+        .submit-area { margin-top: 20px; display: flex; justify-content: flex-end; flex-direction: column; align-items: flex-end; gap: 12px; }
         .submit-area .success-message { width: 100%; margin-bottom: 0; }
-        
-        .info-note {
-            background: #fef3c7;
-            padding: 8px 12px;
-            border-radius: 12px;
-            margin-top: 12px;
-            font-size: 12px;
-            color: #92400e;
-        }
+        .info-note { background: #fef3c7; padding: 8px 12px; border-radius: 12px; margin-top: 12px; font-size: 12px; color: #92400e; }
     </style>
 </head>
 <body>
@@ -159,15 +94,11 @@
             <div class="input-group"><label><i class="fas fa-user"></i> Personil</label><select id="filterPersonil"><option value="all">SEMUA PERSONIL</option></select></div>
             <div class="input-group"><button id="refreshDashboardBtn"><i class="fas fa-sync-alt"></i> Refresh</button></div>
         </div>
-        
-        <!-- TREND CHART - Full width di atas -->
         <div class="trend-chart-box">
             <h3><i class="fas fa-chart-line"></i> TREND KEHADIRAN HARIAN (%)</h3>
             <canvas id="lineChart"></canvas>
             <p style="font-size: 0.7rem; color: #64748b; margin-top: 8px;">* Persentase departemen yang hadir (minimal 1 personil masuk) per tanggal</p>
         </div>
-        
-        <!-- STACKED BAR CHART - Full width di bawah -->
         <div class="stacked-chart-box">
             <h3><i class="fas fa-chart-bar"></i> STACKED BAR - DEPARTEMEN TIDAK HADIR</h3>
             <div class="chart-with-legend">
@@ -180,14 +111,11 @@
                 <i class="fas fa-info-circle"></i> <strong>CARA LIHAT CATATAN:</strong> Arahkan mouse ke batang <span style="color:#ef4444; font-weight:bold;">MERAH</span> (tidak hadir) - nanti muncul tooltip dengan catatan!
             </div>
         </div>
-        
         <div class="card-title" style="margin-top: 16px;"><i class="fas fa-users"></i> REKAP PERSONIL</div>
         <div class="table-container"><table id="personilTable"><thead><tr><th>No</th><th>Nama</th><th>Departemen</th><th>Total Kehadiran</th><th>Tepat Waktu</th><th>Terlambat</th><th>Tidak Hadir</th></tr></thead><tbody id="personilTableBody"><tr><td colspan="7" class="loading">Loading data...</td></tr></tbody></table></div>
-        
         <div class="card-title" style="margin-top: 24px;"><i class="fas fa-list-alt"></i> DETAIL LOG KEHADIRAN</div>
         <div class="table-container"><table id="detailTable"><thead><tr><th>Tanggal</th><th>Departemen</th><th>Personil</th><th>Status Kehadiran</th></tr></thead><tbody id="detailTableBody"><tr><td colspan="4" class="loading">Loading data...</td></tr></tbody></table></div>
     </div>
-    
     <div id="inputPanel" class="panel">
         <div class="card-title"><i class="fas fa-check-circle"></i> INPUT KEHADIRAN</div>
         <div class="input-group" style="max-width: 320px; margin-bottom: 28px;"><label><i class="far fa-calendar-alt"></i> Tanggal Absensi</label><input type="date" id="attendanceDateGlobal"></div>
@@ -197,7 +125,6 @@
             <button id="submitAttendanceBtn"><i class="fas fa-save"></i> SUBMIT ABSENSI</button>
         </div>
     </div>
-    
     <div id="managementPanel" class="panel">
         <div class="card-title"><i class="fas fa-database"></i> MANAJEMEN DATA</div>
         <div style="display:flex; flex-wrap:wrap; gap:20px; background:#f6fbfe; padding:20px; border-radius:28px; margin-bottom:24px;">
@@ -208,11 +135,9 @@
         <div id="deptManagementList"></div>
     </div>
 </div>
-
 <div id="customTooltip" class="chart-tooltip"></div>
-
 <script>
-    (function() {
+    (async function() {
         const SUPABASE_URL = 'https://ucojsqkoitzstlmpbywy.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVjb2pzcWtvaXR6c3RsbXBieXd5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwMjcxNjgsImV4cCI6MjA5MzYwMzE2OH0.HOHo99hCuH6-HxklFJU86LG4dYPMTENKpITjILdTVz8';
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -298,49 +223,40 @@
             return (dept.personils || []).some(p => attendanceOnDate.some(a => a.dept_id === deptId && a.personil_id === p.id && (a.status === "tepat waktu" || a.status === "terlambat")));
         }
         
-        function setupCustomTooltip(chartData) {
+        let lineChart, stackedChart, stackedChartDataRef = null;
+        function setupCustomTooltip(chartDataRef) {
             const canvas = document.getElementById('stackedBarChart');
             const tooltip = document.getElementById('customTooltip');
             if(!canvas) return;
-            
-            canvas.onmousemove = function(e) {
+            const onMouseMove = function(e) {
+                if(!chartDataRef || !chartDataRef.datasets || !chartDataRef.labels) { tooltip.classList.remove('show'); return; }
                 const rect = canvas.getBoundingClientRect();
                 const scaleX = canvas.width / rect.width;
                 const scaleY = canvas.height / rect.height;
                 const mouseX = (e.clientX - rect.left) * scaleX;
                 const mouseY = (e.clientY - rect.top) * scaleY;
-                
-                if (!chartData || !chartData.datasets || !chartData.labels) {
-                    tooltip.classList.remove('show');
-                    return;
-                }
-                
                 let found = null;
-                for (let datasetIdx = 0; datasetIdx < chartData.datasets.length; datasetIdx++) {
-                    const dataset = chartData.datasets[datasetIdx];
-                    const yBase = chartData.yBase?.[datasetIdx] || [];
+                for (let datasetIdx = 0; datasetIdx < chartDataRef.datasets.length; datasetIdx++) {
+                    const dataset = chartDataRef.datasets[datasetIdx];
+                    const yBase = chartDataRef.yBase?.[datasetIdx] || [];
                     for (let i = 0; i < dataset.data.length; i++) {
                         if (dataset.data[i] === 1) {
                             const yStart = yBase[i] || 0;
                             const yEnd = yStart + 30;
                             if (mouseX >= (i * 70) && mouseX <= (i * 70 + 50) && mouseY >= yStart && mouseY <= yEnd) {
-                                found = { datasetIdx, dataIndex: i, dataset, date: chartData.labels[i] };
+                                found = { datasetIdx, dataIndex: i, dataset, date: chartDataRef.labels[i] };
                                 break;
                             }
                         }
                     }
                     if (found) break;
                 }
-                
                 if (found) {
                     const note = found.dataset.notes ? found.dataset.notes[found.dataIndex] : '';
                     let tooltipHtml = `<div class="tooltip-title">📅 ${found.date}</div>`;
                     tooltipHtml += `<div class="tooltip-dept">❌ <strong>${found.dataset.label}</strong> - TIDAK HADIR</div>`;
-                    if (note && note.trim() !== '' && note !== 'NA') {
-                        tooltipHtml += `<div class="tooltip-note">📝 Catatan: ${note}</div>`;
-                    } else {
-                        tooltipHtml += `<div class="tooltip-note" style="color:#94a3b8;">📝 Catatan: NA</div>`;
-                    }
+                    if (note && note.trim() !== '' && note !== 'NA') tooltipHtml += `<div class="tooltip-note">📝 Catatan: ${note}</div>`;
+                    else tooltipHtml += `<div class="tooltip-note" style="color:#94a3b8;">📝 Catatan: NA</div>`;
                     tooltip.innerHTML = tooltipHtml;
                     tooltip.style.left = (e.clientX + 15) + 'px';
                     tooltip.style.top = (e.clientY - 30) + 'px';
@@ -349,22 +265,22 @@
                 }
                 tooltip.classList.remove('show');
             };
-            
-            canvas.onmouseleave = function() { tooltip.classList.remove('show'); };
+            canvas.onmousemove = onMouseMove;
+            canvas.onmouseleave = () => tooltip.classList.remove('show');
         }
         
         async function renderDashboard() {
             attendances = await loadAttendances();
             let dates = getDatesThatHaveData();
-            
             if (dates.length === 0) {
-                updateLineChart([], [], [], 0);
-                updateStackedBarWithLegend([], []);
+                if(lineChart) lineChart.destroy(); lineChart = new Chart(document.getElementById("lineChart").getContext("2d"), { type: 'line', data: { labels: [], datasets: [] } });
+                if(stackedChart) stackedChart.destroy();
+                stackedChart = new Chart(document.getElementById("stackedBarChart").getContext("2d"), { type: 'bar', data: { labels: [], datasets: [] } });
+                document.getElementById('stackedLegend').innerHTML = '<h4>LEGEND</h4><div style="color:#64748b; text-align:center;">Tidak ada data</div>';
                 document.getElementById("personilTableBody").innerHTML = '<tr><td colspan="7" class="loading">Belum ada data absensi</td></tr>';
                 document.getElementById("detailTableBody").innerHTML = '<tr><td colspan="4" class="loading">Belum ada data absensi</td></tr>';
                 return;
             }
-            
             let filteredDepts = currentFilterDept !== 'all' ? departments.filter(d => d.id === currentFilterDept) : departments;
             let attendanceRates = [], deptHadirCounts = [];
             for(let date of dates) { 
@@ -372,11 +288,10 @@
                 attendanceRates.push(filteredDepts.length ? (deptHadir / filteredDepts.length) * 100 : 0); 
                 deptHadirCounts.push(deptHadir); 
             }
-            updateLineChart(dates, attendanceRates, deptHadirCounts, filteredDepts.length);
-            
+            if(lineChart) lineChart.destroy();
+            lineChart = new Chart(document.getElementById("lineChart").getContext("2d"), { type: 'line', data: { labels: dates, datasets: [{ label: 'Persentase Kehadiran Departemen (%)', data: attendanceRates, borderColor: '#0e6b5e', backgroundColor: 'rgba(14,107,94,0.1)', borderWidth: 3, fill: true, tension: 0.3, pointBackgroundColor: '#0e6b5e', pointBorderColor: 'white', pointRadius: 6 }] }, options: { responsive: true, maintainAspectRatio: true, scales: { y: { max: 100, min: 0, title: { display: true, text: 'Persentase (%)' }, ticks: { callback: v => v + '%' } } }, plugins: { tooltip: { callbacks: { label: ctx => [`Persentase: ${ctx.raw.toFixed(1)}%`, `Departemen hadir: ${deptHadirCounts[ctx.dataIndex]} / ${filteredDepts.length}`] } } } } });
             const allDeptIds = filteredDepts.map(d => d.id);
             const notesMap = await loadAllNotesMap(dates, allDeptIds);
-            
             let datasets = [];
             let deptNotHadirCount = {};
             for(let idx = 0; idx < filteredDepts.length; idx++) { 
@@ -393,96 +308,39 @@
                     notesArray.push(note === '' ? 'NA' : note);
                 } 
                 deptNotHadirCount[dept.id] = notHadirCount;
-                datasets.push({ 
-                    label: dept.name, 
-                    data: data, 
-                    backgroundColor: getDeptColor(idx), 
-                    notes: notesArray,
-                    notHadirCount: notHadirCount
-                }); 
+                datasets.push({ label: dept.name, data: data, backgroundColor: getDeptColor(idx), notes: notesArray, notHadirCount: notHadirCount });
             }
-            updateStackedBarWithLegend(dates, datasets, deptNotHadirCount);
+            if(stackedChart) stackedChart.destroy();
+            const ctxStack = document.getElementById("stackedBarChart").getContext("2d");
+            stackedChart = new Chart(ctxStack, { type: 'bar', data: { labels: dates, datasets: datasets }, options: { responsive: true, maintainAspectRatio: true, scales: { x: { stacked: true, title: { display: true, text: 'Tanggal' }, ticks: { maxRotation: 45 } }, y: { stacked: true, title: { display: true, text: 'Jumlah Departemen Tidak Hadir' }, ticks: { stepSize: 1, precision: 0 }, max: Math.max(datasets.length, 1) } }, plugins: { tooltip: { enabled: false }, legend: { display: false } } } });
+            const yBaseArray = []; for(let i=0; i<dates.length; i++) { let total=0; for(let j=0; j<datasets.length; j++) { if(datasets[j].data[i]===1) { yBaseArray[j] = total; total += 30; } } }
+            stackedChartDataRef = { labels: dates, datasets: datasets, yBase: yBaseArray };
+            setupCustomTooltip(stackedChartDataRef);
+            let legendHtml = '<h4><i class="fas fa-chart-simple"></i> LEGEND</h4>';
+            datasets.forEach(ds => { const cnt = deptNotHadirCount[ds.label] ?? ds.notHadirCount; legendHtml += `<div class="legend-item"><div class="legend-color" style="background: ${ds.backgroundColor}"></div><div class="legend-name" title="${ds.label}">${ds.label.length > 18 ? ds.label.substring(0,15)+'...' : ds.label}</div><div class="legend-count">${cnt}x tidak hadir</div></div>`; });
+            document.getElementById('stackedLegend').innerHTML = legendHtml;
             
             let personilData = [];
             let targetDepts = currentFilterDept !== 'all' ? departments.filter(d => d.id === currentFilterDept) : departments;
+            let allDatesCount = dates.length;
             for(let dept of targetDepts) { 
                 for(let person of (dept.personils || [])) { 
                     if (currentFilterPersonil !== 'all' && person.id !== currentFilterPersonil) continue; 
                     let pa = attendances.filter(a => a.personil_id === person.id && a.dept_id === dept.id); 
                     let total = pa.length, tepat = pa.filter(a => a.status === "tepat waktu").length, terlambat = pa.filter(a => a.status === "terlambat").length; 
-                    personilData.push({ name: person.name, dept: dept.name, totalKehadiran: total, tepatWaktu: tepat, terlambat: terlambat, tidakHadir: dates.length - total }); 
+                    let tidakHadir = allDatesCount - total;
+                    personilData.push({ name: person.name, dept: dept.name, totalKehadiran: total, tepatWaktu: tepat, terlambat: terlambat, tidakHadir: tidakHadir }); 
                 } 
             }
             personilData.sort((a, b) => b.totalKehadiran - a.totalKehadiran);
             personilData.forEach((p, i) => p.no = i + 1);
-            document.getElementById("personilTableBody").innerHTML = personilData.length ? personilData.map(p => `<tr><td>${p.no}</td><td><strong>${p.name.toUpperCase()}</strong></td><td>${p.dept.toUpperCase()}</td><td>${p.totalKehadiran}</td><td><span class="badge-hadir">${p.tepatWaktu}</span></td><td><span class="badge-terlambat">${p.terlambat}</span></td><td><span class="badge-tdk-hadir">${p.tidakHadir}</span></td></tr>`).join('') : '<tr><td colspan="7" class="loading">Tidak ada data</td></tr>';
-            
+            document.getElementById("personilTableBody").innerHTML = personilData.length ? personilData.map(p => `<tr><td>${p.no}</td><td><strong>${p.name.toUpperCase()}</strong></td><td>${p.dept.toUpperCase()}</td><td>${p.totalKehadiran}</td><td><span class="badge-hadir">${p.tepatWaktu}</span></td><td><span class="badge-terlambat">${p.terlambat}</span></td><td><span class="badge-tdk-hadir">${p.tidakHadir}</span></td>`).join('') : '<tr><td colspan="7" class="loading">Tidak ada data</td></tr>';
             let detailHtml = attendances.sort((a,b) => new Date(b.date) - new Date(a.date)).map(att => { 
                 let dept = departments.find(d => d.id === att.dept_id); 
                 let person = dept?.personils?.find(p => p.id === att.personil_id); 
-                return `<tr><td>${att.date}</td><td>${dept?.name?.toUpperCase() || "?"}</td><td>${person?.name?.toUpperCase() || "?"}</td><td><span class="badge-${att.status === 'tepat waktu' ? 'hadir' : 'terlambat'}">${att.status === 'tepat waktu' ? 'TEPAT WAKTU' : 'TERLAMBAT'}</span></td></tr>`; 
+                return `<td>${att.date}</td><td>${dept?.name?.toUpperCase() || "?"}</td><td>${person?.name?.toUpperCase() || "?"}</td><td><span class="badge-${att.status === 'tepat waktu' ? 'hadir' : 'terlambat'}">${att.status === 'tepat waktu' ? 'TEPAT WAKTU' : 'TERLAMBAT'}</span></td>`; 
             }).join('');
             document.getElementById("detailTableBody").innerHTML = detailHtml || '<tr><td colspan="4" class="loading">Tidak ada data</td></tr>';
-        }
-        
-        let lineChart;
-        function updateLineChart(labels, data, deptHadirCounts, totalDepts) {
-            let ctx = document.getElementById("lineChart").getContext("2d");
-            if(lineChart) lineChart.destroy();
-            if (!labels.length) { lineChart = new Chart(ctx, { type: 'line', data: { labels: [], datasets: [] } }); return; }
-            lineChart = new Chart(ctx, { type: 'line', data: { labels: labels, datasets: [{ label: 'Persentase Kehadiran Departemen (%)', data: data, borderColor: '#0e6b5e', backgroundColor: 'rgba(14,107,94,0.1)', borderWidth: 3, fill: true, tension: 0.3, pointBackgroundColor: '#0e6b5e', pointBorderColor: 'white', pointRadius: 6 }] }, options: { responsive: true, maintainAspectRatio: true, scales: { y: { max: 100, min: 0, title: { display: true, text: 'Persentase (%)' }, ticks: { callback: v => v + '%' } } }, plugins: { tooltip: { callbacks: { label: ctx => [`Persentase: ${ctx.raw.toFixed(1)}%`, `Departemen hadir: ${deptHadirCounts[ctx.dataIndex]} / ${totalDepts}`] } } } } });
-        }
-        
-        function updateStackedBarWithLegend(labels, datasets, notHadirCounts) {
-            let ctx = document.getElementById("stackedBarChart").getContext("2d");
-            if(window.stackedChart) window.stackedChart.destroy();
-            if (!labels.length || !datasets.length) { 
-                window.stackedChart = new Chart(ctx, { type: 'bar', data: { labels: [], datasets: [] } }); 
-                document.getElementById('stackedLegend').innerHTML = '<h4>LEGEND</h4><div style="color:#64748b; text-align:center;">Tidak ada data</div>';
-                return; 
-            }
-            
-            window.stackedChart = new Chart(ctx, { 
-                type: 'bar', 
-                data: { labels: labels, datasets: datasets }, 
-                options: { 
-                    responsive: true, 
-                    maintainAspectRatio: true,
-                    scales: { 
-                        x: { stacked: true, title: { display: true, text: 'Tanggal' }, ticks: { maxRotation: 45 } }, 
-                        y: { stacked: true, title: { display: true, text: 'Jumlah Departemen Tidak Hadir' }, ticks: { stepSize: 1, precision: 0 }, max: Math.max(datasets.length, 1) } 
-                    }, 
-                    plugins: { tooltip: { enabled: false }, legend: { display: false } } 
-                } 
-            });
-            
-            // Set yBase untuk custom tooltip
-            if(window.stackedChart && window.stackedChart.data.datasets.length) {
-                const yBase = [];
-                for(let i = 0; i < datasets[0].data.length; i++) {
-                    let total = 0;
-                    for(let j = 0; j < datasets.length; j++) {
-                        if(datasets[j].data[i] === 1) {
-                            yBase[j] = total;
-                            total += 30;
-                        }
-                    }
-                }
-                window.stackedChartData = { labels, datasets, yBase };
-                setupCustomTooltip(window.stackedChartData);
-            }
-            
-            // Legend vertical dengan frekuensi
-            let legendHtml = '<h4><i class="fas fa-chart-simple"></i> LEGEND</h4>';
-            datasets.forEach(ds => {
-                const count = notHadirCounts?.[ds.label] || ds.notHadirCount || 0;
-                legendHtml += `<div class="legend-item">
-                    <div class="legend-color" style="background: ${ds.backgroundColor}"></div>
-                    <div class="legend-name" title="${ds.label}">${ds.label.length > 18 ? ds.label.substring(0,15)+'...' : ds.label}</div>
-                    <div class="legend-count">${count}x tidak hadir</div>
-                </div>`;
-            });
-            document.getElementById('stackedLegend').innerHTML = legendHtml;
         }
         
         window.clearRadioGroup = function(radioName) { document.querySelectorAll(`input[name="${radioName}"]`).forEach(radio => radio.checked = false); };
@@ -492,6 +350,7 @@
             if(!container) return;
             if(!departments.length) { container.innerHTML = "<div style='padding:20px; text-align:center;'>Belum ada departemen</div>"; return; }
             let selectedDate = document.getElementById("attendanceDateGlobal").value;
+            if(!selectedDate) selectedDate = new Date().toISOString().slice(0,10);
             let html = "";
             for (let dept of departments) {
                 let personils = dept.personils || [];
@@ -512,7 +371,6 @@
         async function submitAttendance() {
             let selectedDate = document.getElementById("attendanceDateGlobal").value;
             if(!selectedDate) selectedDate = new Date().toISOString().slice(0,10);
-            
             for(let dept of departments) {
                 let allPersonils = dept.personils || [];
                 let anySelected = false;
@@ -520,18 +378,12 @@
                     let selectedRadio = document.querySelector(`input[name="status_${dept.id}_${person.id}"]:checked`);
                     if(selectedRadio) { anySelected = true; break; }
                 }
-                
                 let noteTextarea = document.getElementById(`note_${dept.id}`);
                 let noteValue = noteTextarea ? noteTextarea.value : '';
-                
-                if(!anySelected && allPersonils.length > 0 && (!noteValue || noteValue.trim() === '')) {
-                    noteValue = 'NA';
-                }
+                if(!anySelected && allPersonils.length > 0 && (!noteValue || noteValue.trim() === '')) noteValue = 'NA';
                 await saveNoteToSupabase(selectedDate, dept.id, noteValue);
             }
-            
             await deleteAttendanceByDate(selectedDate);
-            
             let submittedCount = 0;
             for(let dept of departments) {
                 for(let person of (dept.personils || [])) {
@@ -542,20 +394,16 @@
                     }
                 }
             }
-            
             attendances = await loadAttendances();
             await renderDashboard();
-            
             document.querySelectorAll('#allDeptAttendanceContainer input[type="radio"]').forEach(radio => radio.checked = false);
             document.querySelectorAll('#allDeptAttendanceContainer textarea').forEach(textarea => textarea.value = '');
-            
             let totalPersonil = departments.reduce((sum, d) => sum + (d.personils?.length || 0), 0);
             let successDiv = document.getElementById("successMessageInput");
             let successText = document.getElementById("successTextInput");
-            successText.innerHTML = `✅ Berhasil! ${submittedCount} dari ${totalPersonil} personil diinput. Catatan tersimpan di database.`;
+            successText.innerHTML = `✅ Berhasil! ${submittedCount} dari ${totalPersonil} personil diinput. Catatan tersimpan.`;
             successDiv.style.display = "flex";
             setTimeout(() => { successDiv.style.display = "none"; }, 3500);
-            
             await renderInputAttendance();
         }
         
@@ -568,7 +416,6 @@
                 html += `<div style="background:#fff; border-radius:20px; padding:16px; margin-bottom:16px; border:1px solid #e2e8f0;"><div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; margin-bottom:12px;"><b style="font-size:1.1rem; color:#0e6b5e;">📁 ${dept.name.toUpperCase()}</b><button class="delete-dept-btn" data-deptid="${dept.id}" style="background:#dc2626; color:white; padding:4px 12px; border-radius:20px; border:none; cursor:pointer;">Hapus Dept</button></div><div>${(dept.personils || []).map(p => `<span style="background:#f0f9fa; padding:4px 12px; border-radius:40px; display:inline-block; margin:4px;">${p.name.toUpperCase()} <button data-deptid="${dept.id}" data-personilid="${p.id}" class="delete-personil-btn" style="background:none; border:none; color:#dc2626; cursor:pointer;">✖</button></span>`).join('')}</div><div style="margin-top:12px; display:flex; gap:8px;"><input type="text" id="inline_${dept.id}" placeholder="Nama personil baru" style="flex:1;"><button data-deptid="${dept.id}" class="add-personil-inline" style="background:#0e6b5e; padding:4px 12px; border-radius:20px;">Tambah</button></div></div>`;
             });
             listDiv.innerHTML = html;
-            
             document.querySelectorAll(".delete-dept-btn").forEach(btn => btn.onclick = async () => { if(confirm('Hapus departemen ini?')) { await deleteDepartmentById(btn.dataset.deptid); await refreshEverything(); } });
             document.querySelectorAll(".delete-personil-btn").forEach(btn => btn.onclick = async () => { let dept = departments.find(d => d.id === btn.dataset.deptid); if(dept) { dept.personils = (dept.personils || []).filter(p => p.id !== btn.dataset.personilid); await updateDepartment(dept.id, { personils: dept.personils }); await refreshEverything(); } });
             document.querySelectorAll(".add-personil-inline").forEach(btn => btn.onclick = async () => { let inp = document.getElementById(`inline_${btn.dataset.deptid}`); let name = inp.value.trim(); if(name) { let dept = departments.find(d => d.id === btn.dataset.deptid); if(dept) { dept.personils = [...(dept.personils || []), { id: crypto.randomUUID(), name: name.toUpperCase() }]; await updateDepartment(dept.id, { personils: dept.personils }); await refreshEverything(); inp.value = ""; } } });
@@ -608,7 +455,6 @@
             if(nm) { await saveDepartment({ id: crypto.randomUUID(), name: nm.toUpperCase(), personils: [] }); await refreshEverything(); document.getElementById("newDeptName").value = ""; }
             else alert("Isi nama departemen!");
         };
-        
         document.getElementById("addPersonilBtn").onclick = async () => {
             let did = document.getElementById("parentDeptSelect").value;
             let nm = document.getElementById("newPersonName").value.trim();
@@ -617,31 +463,26 @@
                 if(dept) { dept.personils = [...(dept.personils || []), { id: crypto.randomUUID(), name: nm.toUpperCase() }]; await updateDepartment(did, { personils: dept.personils }); await refreshEverything(); document.getElementById("newPersonName").value = ""; }
             } else alert("Pilih departemen dan isi nama personil!");
         };
-        
         document.getElementById("refreshDashboardBtn").onclick = async () => {
             currentFilterDept = document.getElementById("filterDept").value;
             currentFilterPersonil = document.getElementById("filterPersonil").value;
             await renderDashboard();
         };
-        
         document.getElementById("filterDept").onchange = async () => {
             currentFilterDept = document.getElementById("filterDept").value;
             currentFilterPersonil = 'all';
             updateFilterDropdowns();
             await renderDashboard();
         };
-        
         document.getElementById("filterPersonil").onchange = async () => {
             currentFilterPersonil = document.getElementById("filterPersonil").value;
             await renderDashboard();
         };
-        
         document.getElementById("submitAttendanceBtn").onclick = submitAttendance;
         document.getElementById("attendanceDateGlobal").onchange = async () => { if (isInputAuthorized) await renderInputAttendance(); };
-        
         let today = new Date().toISOString().slice(0,10);
         document.getElementById("attendanceDateGlobal").value = today;
-        loadInitialData();
+        await loadInitialData();
     })();
 </script>
 </body>
