@@ -61,8 +61,8 @@
         .chart-tooltip .tooltip-title { font-weight: bold; margin-bottom: 6px; border-bottom: 1px solid #475569; padding-bottom: 4px; }
         .chart-tooltip .tooltip-dept { margin-top: 4px; padding: 4px 0; }
         .chart-tooltip .tooltip-note { margin-top: 6px; padding-top: 6px; border-top: 1px solid #475569; color: #fbbf24; font-style: italic; }
-        .chart-with-legend { display: flex; gap: 20px; align-items: flex-start; }
-        .chart-container { flex: 1; min-width: 0; }
+        .chart-with-legend { display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap; }
+        .chart-container { flex: 1; min-width: 300px; }
         .legend-vertical { width: 220px; background: #f1f5f9; border-radius: 16px; padding: 12px; font-size: 12px; }
         .legend-vertical h4 { font-size: 12px; font-weight: 700; margin-bottom: 10px; color: #0e6b5e; text-transform: uppercase; }
         .legend-item { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-bottom: 1px solid #e2e8f0; font-size: 11px; }
@@ -72,6 +72,21 @@
         .submit-area { margin-top: 20px; display: flex; justify-content: flex-end; flex-direction: column; align-items: flex-end; gap: 12px; }
         .submit-area .success-message { width: 100%; margin-bottom: 0; }
         .info-note { background: #fef3c7; padding: 8px 12px; border-radius: 12px; margin-top: 12px; font-size: 12px; color: #92400e; }
+        
+        /* Styling khusus untuk detail log */
+        .detail-log-container {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        .detail-log-container table {
+            width: 100%;
+        }
+        .detail-log-container th {
+            position: sticky;
+            top: 0;
+            background: #eef6fc;
+            z-index: 10;
+        }
     </style>
 </head>
 <body>
@@ -113,9 +128,25 @@
         </div>
         <div class="card-title" style="margin-top: 16px;"><i class="fas fa-users"></i> REKAP PERSONIL</div>
         <div class="table-container"><table id="personilTable"><thead><tr><th>No</th><th>Nama</th><th>Departemen</th><th>Total Kehadiran</th><th>Tepat Waktu</th><th>Terlambat</th><th>Tidak Hadir</th></tr></thead><tbody id="personilTableBody"><tr><td colspan="7" class="loading">Loading data...</td></tr></tbody></table></div>
+        
         <div class="card-title" style="margin-top: 24px;"><i class="fas fa-list-alt"></i> DETAIL LOG KEHADIRAN</div>
-        <div class="table-container"><table id="detailTable"><thead><tr><th>Tanggal</th><th>Departemen</th><th>Personil</th><th>Status Kehadiran</th></tr></thead><tbody id="detailTableBody"><tr><td colspan="4" class="loading">Loading data...</td></tr></tbody></table></div>
+        <div class="table-container detail-log-container">
+            <table id="detailTable">
+                <thead>
+                    <tr>
+                        <th style="width: 25%">Tanggal</th>
+                        <th style="width: 25%">Departemen</th>
+                        <th style="width: 30%">Personil</th>
+                        <th style="width: 20%">Status Kehadiran</th>
+                    </tr>
+                </thead>
+                <tbody id="detailTableBody">
+                    <tr><td colspan="4" class="loading">Loading data...</td></tr>
+                </tbody>
+            </table>
+        </div>
     </div>
+    
     <div id="inputPanel" class="panel">
         <div class="card-title"><i class="fas fa-check-circle"></i> INPUT KEHADIRAN</div>
         <div class="input-group" style="max-width: 320px; margin-bottom: 28px;"><label><i class="far fa-calendar-alt"></i> Tanggal Absensi</label><input type="date" id="attendanceDateGlobal"></div>
@@ -125,6 +156,7 @@
             <button id="submitAttendanceBtn"><i class="fas fa-save"></i> SUBMIT ABSENSI</button>
         </div>
     </div>
+    
     <div id="managementPanel" class="panel">
         <div class="card-title"><i class="fas fa-database"></i> MANAJEMEN DATA</div>
         <div style="display:flex; flex-wrap:wrap; gap:20px; background:#f6fbfe; padding:20px; border-radius:28px; margin-bottom:24px;">
@@ -136,6 +168,7 @@
     </div>
 </div>
 <div id="customTooltip" class="chart-tooltip"></div>
+
 <script>
     (async function() {
         const SUPABASE_URL = 'https://ucojsqkoitzstlmpbywy.supabase.co';
@@ -290,6 +323,7 @@
             }
             if(lineChart) lineChart.destroy();
             lineChart = new Chart(document.getElementById("lineChart").getContext("2d"), { type: 'line', data: { labels: dates, datasets: [{ label: 'Persentase Kehadiran Departemen (%)', data: attendanceRates, borderColor: '#0e6b5e', backgroundColor: 'rgba(14,107,94,0.1)', borderWidth: 3, fill: true, tension: 0.3, pointBackgroundColor: '#0e6b5e', pointBorderColor: 'white', pointRadius: 6 }] }, options: { responsive: true, maintainAspectRatio: true, scales: { y: { max: 100, min: 0, title: { display: true, text: 'Persentase (%)' }, ticks: { callback: v => v + '%' } } }, plugins: { tooltip: { callbacks: { label: ctx => [`Persentase: ${ctx.raw.toFixed(1)}%`, `Departemen hadir: ${deptHadirCounts[ctx.dataIndex]} / ${filteredDepts.length}`] } } } } });
+            
             const allDeptIds = filteredDepts.map(d => d.id);
             const notesMap = await loadAllNotesMap(dates, allDeptIds);
             let datasets = [];
@@ -334,11 +368,17 @@
             }
             personilData.sort((a, b) => b.totalKehadiran - a.totalKehadiran);
             personilData.forEach((p, i) => p.no = i + 1);
-            document.getElementById("personilTableBody").innerHTML = personilData.length ? personilData.map(p => `<tr><td>${p.no}</td><td><strong>${p.name.toUpperCase()}</strong></td><td>${p.dept.toUpperCase()}</td><td>${p.totalKehadiran}</td><td><span class="badge-hadir">${p.tepatWaktu}</span></td><td><span class="badge-terlambat">${p.terlambat}</span></td><td><span class="badge-tdk-hadir">${p.tidakHadir}</span></td>`).join('') : '<tr><td colspan="7" class="loading">Tidak ada data</td></tr>';
+            document.getElementById("personilTableBody").innerHTML = personilData.length ? personilData.map(p => `<tr><td style="width:5%">${p.no}</td><td style="width:25%"><strong>${p.name.toUpperCase()}</strong></td><td style="width:20%">${p.dept.toUpperCase()}</td><td style="width:10%">${p.totalKehadiran}</td><td style="width:15%"><span class="badge-hadir">${p.tepatWaktu}</span></td><td style="width:15%"><span class="badge-terlambat">${p.terlambat}</span></td><td style="width:10%"><span class="badge-tdk-hadir">${p.tidakHadir}</span></td>`).join('') : '<tr><td colspan="7" class="loading">Tidak ada data</td></tr>';
+            
             let detailHtml = attendances.sort((a,b) => new Date(b.date) - new Date(a.date)).map(att => { 
                 let dept = departments.find(d => d.id === att.dept_id); 
                 let person = dept?.personils?.find(p => p.id === att.personil_id); 
-                return `<td>${att.date}</td><td>${dept?.name?.toUpperCase() || "?"}</td><td>${person?.name?.toUpperCase() || "?"}</td><td><span class="badge-${att.status === 'tepat waktu' ? 'hadir' : 'terlambat'}">${att.status === 'tepat waktu' ? 'TEPAT WAKTU' : 'TERLAMBAT'}</span></td>`; 
+                return `<tr>
+                    <td style="width:25%">${att.date}</td>
+                    <td style="width:25%">${dept?.name?.toUpperCase() || "?"}</td>
+                    <td style="width:30%">${person?.name?.toUpperCase() || "?"}</td>
+                    <td style="width:20%"><span class="badge-${att.status === 'tepat waktu' ? 'hadir' : 'terlambat'}">${att.status === 'tepat waktu' ? 'TEPAT WAKTU' : 'TERLAMBAT'}</span></td>
+                </tr>`; 
             }).join('');
             document.getElementById("detailTableBody").innerHTML = detailHtml || '<tr><td colspan="4" class="loading">Tidak ada data</td></tr>';
         }
