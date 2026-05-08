@@ -143,7 +143,7 @@
                 <tbody id="detailTableBody">
                     <tr><td colspan="4" class="loading">Loading data...</td></tr>
                 </tbody>
-            </table>
+             </table>
         </div>
     </div>
     
@@ -368,7 +368,7 @@
             }
             personilData.sort((a, b) => b.totalKehadiran - a.totalKehadiran);
             personilData.forEach((p, i) => p.no = i + 1);
-            document.getElementById("personilTableBody").innerHTML = personilData.length ? personilData.map(p => `<tr><td style="width:5%">${p.no}</td><td style="width:25%"><strong>${p.name.toUpperCase()}</strong></td><td style="width:20%">${p.dept.toUpperCase()}</td><td style="width:10%">${p.totalKehadiran}</td><td style="width:15%"><span class="badge-hadir">${p.tepatWaktu}</span></td><td style="width:15%"><span class="badge-terlambat">${p.terlambat}</span></td><td style="width:10%"><span class="badge-tdk-hadir">${p.tidakHadir}</span></td>`).join('') : '<tr><td colspan="7" class="loading">Tidak ada data</td></tr>';
+            document.getElementById("personilTableBody").innerHTML = personilData.length ? personilData.map(p => `<tr><td style="width:5%">${p.no}</td><td style="width:25%"><strong>${p.name.toUpperCase()}</strong></td><td style="width:20%">${p.dept.toUpperCase()}</td><td style="width:10%">${p.totalKehadiran}</td><td style="width:15%"><span class="badge-hadir">${p.tepatWaktu}</span></td><td style="width:15%"><span class="badge-terlambat">${p.terlambat}</span></td><td style="width:10%"><span class="badge-tdk-hadir">${p.tidakHadir}</span></td>`).join('') : '<tr><td colspan="7" class="loading">Tidak ada数据</td>';
             
             let detailHtml = attendances.sort((a,b) => new Date(b.date) - new Date(a.date)).map(att => { 
                 let dept = departments.find(d => d.id === att.dept_id); 
@@ -380,7 +380,7 @@
                     <td style="width:20%"><span class="badge-${att.status === 'tepat waktu' ? 'hadir' : 'terlambat'}">${att.status === 'tepat waktu' ? 'TEPAT WAKTU' : 'TERLAMBAT'}</span></td>
                 </tr>`; 
             }).join('');
-            document.getElementById("detailTableBody").innerHTML = detailHtml || '<tr><td colspan="4" class="loading">Tidak ada data</td></tr>';
+            document.getElementById("detailTableBody").innerHTML = detailHtml || '<tr><td colspan="4" class="loading">Tidak ada数据</td>';
         }
         
         window.clearRadioGroup = function(radioName) { document.querySelectorAll(`input[name="${radioName}"]`).forEach(radio => radio.checked = false); };
@@ -393,7 +393,10 @@
             if(!selectedDate) selectedDate = new Date().toISOString().slice(0,10);
             let html = "";
             for (let dept of departments) {
-                let personils = dept.personils || [];
+                // --- URUTKAN PERSONIL BERDASARKAN NAMA (A-Z) ---
+                let personils = [...(dept.personils || [])];
+                personils.sort((a, b) => a.name.localeCompare(b.name));
+                
                 let existingNote = await getNoteFromSupabase(selectedDate, dept.id);
                 let noteValue = (existingNote && existingNote !== 'NA') ? existingNote : '';
                 html += `<div class="dept-input-section"><div class="dept-input-header"><h3><i class="fas fa-building"></i> ${dept.name.toUpperCase()}</h3><span style="font-size:0.7rem; color:#64748b;"><i class="fas fa-user-friends"></i> ${personils.length} personil</span></div>`;
