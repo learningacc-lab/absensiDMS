@@ -49,6 +49,7 @@
         .badge-terlambat { background: #fef9c3; color: #854d0e; padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; display: inline-block; }
         .badge-tdk-hadir { background: #fee2e2; color: #991b1b; padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; display: inline-block; }
         .success-message { background: #dcfce7; color: #166534; padding: 12px 20px; border-radius: 16px; margin-bottom: 20px; display: none; align-items: center; gap: 12px; }
+        .error-message { background: #fee2e2; color: #991b1b; padding: 12px 20px; border-radius: 16px; margin-bottom: 20px; display: none; align-items: center; gap: 12px; white-space: pre-wrap; }
         .loading { text-align: center; padding: 40px; color: #64748b; }
         .dept-input-section { background: #fefdf7; border-radius: 24px; margin-bottom: 24px; border: 1px solid #d4e6f0; overflow: hidden; }
         .dept-input-header { background: #eef6fc; padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
@@ -72,21 +73,9 @@
         .submit-area { margin-top: 20px; display: flex; justify-content: flex-end; flex-direction: column; align-items: flex-end; gap: 12px; }
         .submit-area .success-message { width: 100%; margin-bottom: 0; }
         .info-note { background: #fef3c7; padding: 8px 12px; border-radius: 12px; margin-top: 12px; font-size: 12px; color: #92400e; }
-        
-        /* Styling khusus untuk detail log */
-        .detail-log-container {
-            max-height: 500px;
-            overflow-y: auto;
-        }
-        .detail-log-container table {
-            width: 100%;
-        }
-        .detail-log-container th {
-            position: sticky;
-            top: 0;
-            background: #eef6fc;
-            z-index: 10;
-        }
+        .detail-log-container { max-height: 500px; overflow-y: auto; }
+        .detail-log-container table { width: 100%; }
+        .detail-log-container th { position: sticky; top: 0; background: #eef6fc; z-index: 10; }
     </style>
 </head>
 <body>
@@ -127,23 +116,14 @@
             </div>
         </div>
         <div class="card-title" style="margin-top: 16px;"><i class="fas fa-users"></i> REKAP PERSONIL</div>
-        <div class="table-container"><table id="personilTable"><thead><tr><th>No</th><th>Nama</th><th>Departemen</th><th>Total Kehadiran</th><th>Tepat Waktu</th><th>Terlambat</th><th>Tidak Hadir</th></tr></thead><tbody id="personilTableBody"><tr><td colspan="7" class="loading">Loading data...</td></tr></tbody></table></div>
+        <div class="table-container"><table id="personilTable"><thead><tr><th>No</th><th>Nama</th><th>Departemen</th><th>Total Kehadiran</th><th>Tepat Waktu</th><th>Terlambat</th><th>Tidak Hadir</th></tr></thead><tbody id="personilTableBody"><tr><td colspan="7" class="loading">Loading data......</td></tr></tbody></table></div>
         
         <div class="card-title" style="margin-top: 24px;"><i class="fas fa-list-alt"></i> DETAIL LOG KEHADIRAN</div>
         <div class="table-container detail-log-container">
             <table id="detailTable">
-                <thead>
-                    <tr>
-                        <th style="width: 25%">Tanggal</th>
-                        <th style="width: 25%">Departemen</th>
-                        <th style="width: 30%">Personil</th>
-                        <th style="width: 20%">Status Kehadiran</th>
-                    </tr>
-                </thead>
-                <tbody id="detailTableBody">
-                    <tr><td colspan="4" class="loading">Loading data...</td></tr>
-                </tbody>
-             </table>
+                <thead><tr><th style="width: 25%">Tanggal</th><th style="width: 25%">Departemen</th><th style="width: 30%">Personil</th><th style="width: 20%">Status Kehadiran</th></tr></thead>
+                <tbody id="detailTableBody"><tr><td colspan="4" class="loading">Loading data...</td></tr></tbody>
+            </table>
         </div>
     </div>
     
@@ -153,6 +133,7 @@
         <div id="allDeptAttendanceContainer"></div>
         <div class="submit-area">
             <div id="successMessageInput" class="success-message"><i class="fas fa-check-circle"></i> <span id="successTextInput"></span></div>
+            <div id="errorMessageInput" class="error-message"><i class="fas fa-exclamation-triangle"></i> <span id="errorTextInput"></span></div>
             <button id="submitAttendanceBtn"><i class="fas fa-save"></i> SUBMIT ABSENSI</button>
         </div>
     </div>
@@ -178,25 +159,89 @@
         let isInputAuthorized = false, isManagementAuthorized = false;
         let departments = [], attendances = [];
         let currentFilterDept = 'all', currentFilterPersonil = 'all';
+        let startDate = '', endDate = '';
+        
+        function showError(message) {
+            const errorDiv = document.getElementById("errorMessageInput");
+            const errorText = document.getElementById("errorTextInput");
+            if (errorDiv && errorText) {
+                errorText.innerHTML = message;
+                errorDiv.style.display = "flex";
+                setTimeout(() => { errorDiv.style.display = "none"; }, 8000);
+            }
+            console.error(message);
+        }
+        
+        function showSuccess(message) {
+            const successDiv = document.getElementById("successMessageInput");
+            const successText = document.getElementById("successTextInput");
+            if (successDiv && successText) {
+                successText.innerHTML = message;
+                successDiv.style.display = "flex";
+                setTimeout(() => { successDiv.style.display = "none"; }, 3500);
+            }
+        }
         
         async function saveNoteToSupabase(date, deptId, note) {
-            if (!date || !deptId) return;
+            if (!date || !deptId) return false;
             let finalNote = note && note.trim() !== '' ? note.trim() : 'NA';
-            await supabase.from('dept_notes').upsert([{ date, dept_id: deptId, note: finalNote }], { onConflict: 'date,dept_id' });
+            
+            try {
+                const { error } = await supabase
+                    .from('dept_notes')
+                    .upsert([{ date, dept_id: deptId, note: finalNote }], { 
+                        onConflict: 'date,dept_id' 
+                    });
+                
+                if (error) {
+                    console.error('Error saving note:', error);
+                    showError(`Gagal simpan catatan: ${error.message}`);
+                    return false;
+                }
+                return true;
+            } catch (e) {
+                console.error('Exception saving note:', e);
+                showError(`Exception: ${e.message}`);
+                return false;
+            }
         }
         
         async function getNoteFromSupabase(date, deptId) {
             if (!date || !deptId) return '';
-            const { data } = await supabase.from('dept_notes').select('note').eq('date', date).eq('dept_id', deptId).maybeSingle();
-            return data?.note || '';
+            try {
+                const { data, error } = await supabase
+                    .from('dept_notes')
+                    .select('note')
+                    .eq('date', date)
+                    .eq('dept_id', deptId)
+                    .maybeSingle();
+                
+                if (error) return '';
+                return data?.note || '';
+            } catch (e) {
+                return '';
+            }
         }
         
         async function loadAllNotesMap(dates, deptIds) {
             if (!dates.length || !deptIds.length) return {};
-            const { data } = await supabase.from('dept_notes').select('date, dept_id, note').in('date', dates).in('dept_id', deptIds);
-            const map = {};
-            (data || []).forEach(item => { map[`${item.date}_${item.dept_id}`] = item.note; });
-            return map;
+            try {
+                const { data, error } = await supabase
+                    .from('dept_notes')
+                    .select('date, dept_id, note')
+                    .in('date', dates)
+                    .in('dept_id', deptIds);
+                
+                if (error) return {};
+                
+                const map = {};
+                (data || []).forEach(item => { 
+                    map[`${item.date}_${item.dept_id}`] = item.note; 
+                });
+                return map;
+            } catch (e) {
+                return {};
+            }
         }
         
         const deptColors = ['#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec489a', '#06b6d4', '#84cc16', '#f97316', '#6366f1'];
@@ -218,14 +263,24 @@
             document.getElementById('passwordInput').onkeypress = (e) => { if (e.key === 'Enter') verify(); };
         }
         
-        async function loadDepartments() { const { data } = await supabase.from('departments').select('*').order('name'); return data || []; }
+        async function loadDepartments() { 
+            const { data } = await supabase.from('departments').select('*').order('name'); 
+            return data || []; 
+        }
+        
         async function loadAttendances() { 
             let query = supabase.from('attendances').select('*');
             if (currentFilterDept !== 'all') query = query.eq('dept_id', currentFilterDept);
             if (currentFilterPersonil !== 'all') query = query.eq('personil_id', currentFilterPersonil);
+            
+            if (startDate && endDate) {
+                query = query.gte('date', startDate).lte('date', endDate);
+            }
+            
             const { data } = await query;
             return data || [];
         }
+        
         async function saveDepartment(dept) { return await supabase.from('departments').insert([dept]); }
         async function updateDepartment(id, updates) { return await supabase.from('departments').update(updates).eq('id', id); }
         async function deleteDepartmentById(id) { 
@@ -241,14 +296,33 @@
             let filterPersonil = document.getElementById("filterPersonil");
             let deptHtml = '<option value="all">SEMUA DEPARTEMEN</option>';
             departments.forEach(d => deptHtml += `<option value="${d.id}">${d.name.toUpperCase()}</option>`);
-            filterDept.innerHTML = deptHtml; filterDept.value = currentFilterDept;
+            filterDept.innerHTML = deptHtml; 
+            filterDept.value = currentFilterDept;
+            
             let personilHtml = '<option value="all">SEMUA PERSONIL</option>';
-            if (currentFilterDept === 'all') { departments.forEach(d => (d.personils || []).forEach(p => personilHtml += `<option value="${p.id}">${d.name.toUpperCase()} - ${p.name.toUpperCase()}</option>`)); }
-            else { let dept = departments.find(d => d.id === currentFilterDept); if (dept) (dept.personils || []).forEach(p => personilHtml += `<option value="${p.id}">${p.name.toUpperCase()}</option>`); }
-            filterPersonil.innerHTML = personilHtml; filterPersonil.value = currentFilterPersonil;
+            if (currentFilterDept === 'all') { 
+                departments.forEach(d => (d.personils || []).forEach(p => personilHtml += `<option value="${p.id}">${d.name.toUpperCase()} - ${p.name.toUpperCase()}</option>`)); 
+            } else { 
+                let dept = departments.find(d => d.id === currentFilterDept); 
+                if (dept) (dept.personils || []).forEach(p => personilHtml += `<option value="${p.id}">${p.name.toUpperCase()}</option>`); 
+            }
+            filterPersonil.innerHTML = personilHtml; 
+            filterPersonil.value = currentFilterPersonil;
         }
         
-        function getDatesThatHaveData() { return [...new Set(attendances.map(a => a.date))].sort(); }
+        function getDatesThatHaveData() { 
+            let dates = [...new Set(attendances.map(a => a.date))].sort();
+            if (startDate && endDate) {
+                let start = new Date(startDate);
+                let end = new Date(endDate);
+                dates = dates.filter(d => {
+                    let date = new Date(d);
+                    return date >= start && date <= end;
+                });
+            }
+            return dates;
+        }
+        
         function isDeptHadir(deptId, date) {
             let attendanceOnDate = attendances.filter(a => a.date === date);
             let dept = departments.find(d => d.id === deptId);
@@ -257,47 +331,45 @@
         }
         
         let lineChart, stackedChart, stackedChartDataRef = null;
+        
         function setupCustomTooltip(chartDataRef) {
             const canvas = document.getElementById('stackedBarChart');
             const tooltip = document.getElementById('customTooltip');
             if(!canvas) return;
+            
             const onMouseMove = function(e) {
-                if(!chartDataRef || !chartDataRef.datasets || !chartDataRef.labels) { tooltip.classList.remove('show'); return; }
-                const rect = canvas.getBoundingClientRect();
-                const scaleX = canvas.width / rect.width;
-                const scaleY = canvas.height / rect.height;
-                const mouseX = (e.clientX - rect.left) * scaleX;
-                const mouseY = (e.clientY - rect.top) * scaleY;
-                let found = null;
-                for (let datasetIdx = 0; datasetIdx < chartDataRef.datasets.length; datasetIdx++) {
-                    const dataset = chartDataRef.datasets[datasetIdx];
-                    const yBase = chartDataRef.yBase?.[datasetIdx] || [];
-                    for (let i = 0; i < dataset.data.length; i++) {
-                        if (dataset.data[i] === 1) {
-                            const yStart = yBase[i] || 0;
-                            const yEnd = yStart + 30;
-                            if (mouseX >= (i * 70) && mouseX <= (i * 70 + 50) && mouseY >= yStart && mouseY <= yEnd) {
-                                found = { datasetIdx, dataIndex: i, dataset, date: chartDataRef.labels[i] };
-                                break;
-                            }
-                        }
-                    }
-                    if (found) break;
+                if(!chartDataRef || !chartDataRef.datasets || !chartDataRef.labels || !stackedChart) { 
+                    tooltip.classList.remove('show'); 
+                    return; 
                 }
-                if (found) {
-                    const note = found.dataset.notes ? found.dataset.notes[found.dataIndex] : '';
-                    let tooltipHtml = `<div class="tooltip-title">📅 ${found.date}</div>`;
-                    tooltipHtml += `<div class="tooltip-dept">❌ <strong>${found.dataset.label}</strong> - TIDAK HADIR</div>`;
-                    if (note && note.trim() !== '' && note !== 'NA') tooltipHtml += `<div class="tooltip-note">📝 Catatan: ${note}</div>`;
-                    else tooltipHtml += `<div class="tooltip-note" style="color:#94a3b8;">📝 Catatan: NA</div>`;
-                    tooltip.innerHTML = tooltipHtml;
-                    tooltip.style.left = (e.clientX + 15) + 'px';
-                    tooltip.style.top = (e.clientY - 30) + 'px';
-                    tooltip.classList.add('show');
-                    return;
+                
+                const activeElements = stackedChart.getElementsAtEventForMode(e, 'nearest', { intersect: true }, true);
+                
+                if (activeElements && activeElements.length > 0) {
+                    const element = activeElements[0];
+                    const datasetIndex = element.datasetIndex;
+                    const dataIndex = element.index;
+                    const dataset = chartDataRef.datasets[datasetIndex];
+                    
+                    if (dataset && dataset.data[dataIndex] === 1) {
+                        const note = dataset.notes ? dataset.notes[dataIndex] : '';
+                        let tooltipHtml = `<div class="tooltip-title">📅 ${chartDataRef.labels[dataIndex]}</div>`;
+                        tooltipHtml += `<div class="tooltip-dept">❌ <strong>${dataset.label}</strong> - TIDAK HADIR</div>`;
+                        if (note && note.trim() !== '' && note !== 'NA') {
+                            tooltipHtml += `<div class="tooltip-note">📝 Catatan: ${note}</div>`;
+                        } else {
+                            tooltipHtml += `<div class="tooltip-note" style="color:#94a3b8;">📝 Catatan: Tidak ada catatan (NA)</div>`;
+                        }
+                        tooltip.innerHTML = tooltipHtml;
+                        tooltip.style.left = (e.clientX + 15) + 'px';
+                        tooltip.style.top = (e.clientY - 30) + 'px';
+                        tooltip.classList.add('show');
+                        return;
+                    }
                 }
                 tooltip.classList.remove('show');
             };
+            
             canvas.onmousemove = onMouseMove;
             canvas.onmouseleave = () => tooltip.classList.remove('show');
         }
@@ -305,8 +377,10 @@
         async function renderDashboard() {
             attendances = await loadAttendances();
             let dates = getDatesThatHaveData();
+            
             if (dates.length === 0) {
-                if(lineChart) lineChart.destroy(); lineChart = new Chart(document.getElementById("lineChart").getContext("2d"), { type: 'line', data: { labels: [], datasets: [] } });
+                if(lineChart) lineChart.destroy(); 
+                lineChart = new Chart(document.getElementById("lineChart").getContext("2d"), { type: 'line', data: { labels: [], datasets: [] } });
                 if(stackedChart) stackedChart.destroy();
                 stackedChart = new Chart(document.getElementById("stackedBarChart").getContext("2d"), { type: 'bar', data: { labels: [], datasets: [] } });
                 document.getElementById('stackedLegend').innerHTML = '<h4>LEGEND</h4><div style="color:#64748b; text-align:center;">Tidak ada data</div>';
@@ -314,42 +388,55 @@
                 document.getElementById("detailTableBody").innerHTML = '<tr><td colspan="4" class="loading">Belum ada data absensi</td></tr>';
                 return;
             }
+            
             let filteredDepts = currentFilterDept !== 'all' ? departments.filter(d => d.id === currentFilterDept) : departments;
+            
             let attendanceRates = [], deptHadirCounts = [];
             for(let date of dates) { 
                 let deptHadir = filteredDepts.filter(d => isDeptHadir(d.id, date)).length; 
                 attendanceRates.push(filteredDepts.length ? (deptHadir / filteredDepts.length) * 100 : 0); 
                 deptHadirCounts.push(deptHadir); 
             }
+            
             if(lineChart) lineChart.destroy();
-            lineChart = new Chart(document.getElementById("lineChart").getContext("2d"), { type: 'line', data: { labels: dates, datasets: [{ label: 'Persentase Kehadiran Departemen (%)', data: attendanceRates, borderColor: '#0e6b5e', backgroundColor: 'rgba(14,107,94,0.1)', borderWidth: 3, fill: true, tension: 0.3, pointBackgroundColor: '#0e6b5e', pointBorderColor: 'white', pointRadius: 6 }] }, options: { responsive: true, maintainAspectRatio: true, scales: { y: { max: 100, min: 0, title: { display: true, text: 'Persentase (%)' }, ticks: { callback: v => v + '%' } } }, plugins: { tooltip: { callbacks: { label: ctx => [`Persentase: ${ctx.raw.toFixed(1)}%`, `Departemen hadir: ${deptHadirCounts[ctx.dataIndex]} / ${filteredDepts.length}`] } } } } });
+            lineChart = new Chart(document.getElementById("lineChart").getContext("2d"), { 
+                type: 'line', data: { labels: dates, datasets: [{ label: 'Persentase Kehadiran Departemen (%)', data: attendanceRates, borderColor: '#0e6b5e', backgroundColor: 'rgba(14,107,94,0.1)', borderWidth: 3, fill: true, tension: 0.3, pointBackgroundColor: '#0e6b5e', pointBorderColor: 'white', pointRadius: 6 }] }, 
+                options: { responsive: true, maintainAspectRatio: true, scales: { y: { max: 100, min: 0, title: { display: true, text: 'Persentase (%)' }, ticks: { callback: v => v + '%' } } }, plugins: { tooltip: { callbacks: { label: ctx => [`Persentase: ${ctx.raw.toFixed(1)}%`, `Departemen hadir: ${deptHadirCounts[ctx.dataIndex]} / ${filteredDepts.length}`] } } } } 
+            });
             
             const allDeptIds = filteredDepts.map(d => d.id);
             const notesMap = await loadAllNotesMap(dates, allDeptIds);
+            
             let datasets = [];
             let deptNotHadirCount = {};
+            
             for(let idx = 0; idx < filteredDepts.length; idx++) { 
                 let dept = filteredDepts[idx];
                 let data = [];
                 let notesArray = [];
                 let notHadirCount = 0;
+                
                 for(let date of dates) { 
                     let hadir = isDeptHadir(dept.id, date);
                     let nilai = hadir ? 0 : 1;
                     data.push(nilai);
                     if(nilai === 1) notHadirCount++;
+                    
                     let note = notesMap[`${date}_${dept.id}`] || '';
                     notesArray.push(note === '' ? 'NA' : note);
                 } 
+                
                 deptNotHadirCount[dept.id] = notHadirCount;
                 datasets.push({ label: dept.name, data: data, backgroundColor: getDeptColor(idx), notes: notesArray, notHadirCount: notHadirCount });
             }
+            
             if(stackedChart) stackedChart.destroy();
             const ctxStack = document.getElementById("stackedBarChart").getContext("2d");
             stackedChart = new Chart(ctxStack, { type: 'bar', data: { labels: dates, datasets: datasets }, options: { responsive: true, maintainAspectRatio: true, scales: { x: { stacked: true, title: { display: true, text: 'Tanggal' }, ticks: { maxRotation: 45 } }, y: { stacked: true, title: { display: true, text: 'Jumlah Departemen Tidak Hadir' }, ticks: { stepSize: 1, precision: 0 }, max: Math.max(datasets.length, 1) } }, plugins: { tooltip: { enabled: false }, legend: { display: false } } } });
-            const yBaseArray = []; for(let i=0; i<dates.length; i++) { let total=0; for(let j=0; j<datasets.length; j++) { if(datasets[j].data[i]===1) { yBaseArray[j] = total; total += 30; } } }
-            stackedChartDataRef = { labels: dates, datasets: datasets, yBase: yBaseArray };
-            setupCustomTooltip(stackedChartDataRef);
+            
+            stackedChartDataRef = { labels: dates, datasets: datasets };
+            setTimeout(() => setupCustomTooltip(stackedChartDataRef), 100);
+            
             let legendHtml = '<h4><i class="fas fa-chart-simple"></i> LEGEND</h4>';
             datasets.forEach(ds => { const cnt = deptNotHadirCount[ds.label] ?? ds.notHadirCount; legendHtml += `<div class="legend-item"><div class="legend-color" style="background: ${ds.backgroundColor}"></div><div class="legend-name" title="${ds.label}">${ds.label.length > 18 ? ds.label.substring(0,15)+'...' : ds.label}</div><div class="legend-count">${cnt}x tidak hadir</div></div>`; });
             document.getElementById('stackedLegend').innerHTML = legendHtml;
@@ -357,6 +444,7 @@
             let personilData = [];
             let targetDepts = currentFilterDept !== 'all' ? departments.filter(d => d.id === currentFilterDept) : departments;
             let allDatesCount = dates.length;
+            
             for(let dept of targetDepts) { 
                 for(let person of (dept.personils || [])) { 
                     if (currentFilterPersonil !== 'all' && person.id !== currentFilterPersonil) continue; 
@@ -366,67 +454,89 @@
                     personilData.push({ name: person.name, dept: dept.name, totalKehadiran: total, tepatWaktu: tepat, terlambat: terlambat, tidakHadir: tidakHadir }); 
                 } 
             }
+            
             personilData.sort((a, b) => b.totalKehadiran - a.totalKehadiran);
             personilData.forEach((p, i) => p.no = i + 1);
-            document.getElementById("personilTableBody").innerHTML = personilData.length ? personilData.map(p => `<tr><td style="width:5%">${p.no}</td><td style="width:25%"><strong>${p.name.toUpperCase()}</strong></td><td style="width:20%">${p.dept.toUpperCase()}</td><td style="width:10%">${p.totalKehadiran}</td><td style="width:15%"><span class="badge-hadir">${p.tepatWaktu}</span></td><td style="width:15%"><span class="badge-terlambat">${p.terlambat}</span></td><td style="width:10%"><span class="badge-tdk-hadir">${p.tidakHadir}</span></td>`).join('') : '<tr><td colspan="7" class="loading">Tidak ada数据</td>';
+            document.getElementById("personilTableBody").innerHTML = personilData.length ? personilData.map(p => `<tr><td style="width:5%">${p.no}</td><td style="width:25%"><strong>${p.name.toUpperCase()}</strong></td><td style="width:20%">${p.dept.toUpperCase()}</td><td style="width:10%">${p.totalKehadiran}</td><td style="width:15%"><span class="badge-hadir">${p.tepatWaktu}</span></td><td style="width:15%"><span class="badge-terlambat">${p.terlambat}</span></td><td style="width:10%"><span class="badge-tdk-hadir">${p.tidakHadir}</span></td>`).join('') : '<tr><td colspan="7" class="loading">Tidak ada data</td></tr>';
             
-            let detailHtml = attendances.sort((a,b) => new Date(b.date) - new Date(a.date)).map(att => { 
-                let dept = departments.find(d => d.id === att.dept_id); 
-                let person = dept?.personils?.find(p => p.id === att.personil_id); 
-                return `<tr>
-                    <td style="width:25%">${att.date}</td>
-                    <td style="width:25%">${dept?.name?.toUpperCase() || "?"}</td>
-                    <td style="width:30%">${person?.name?.toUpperCase() || "?"}</td>
-                    <td style="width:20%"><span class="badge-${att.status === 'tepat waktu' ? 'hadir' : 'terlambat'}">${att.status === 'tepat waktu' ? 'TEPAT WAKTU' : 'TERLAMBAT'}</span></td>
-                </tr>`; 
-            }).join('');
-            document.getElementById("detailTableBody").innerHTML = detailHtml || '<tr><td colspan="4" class="loading">Tidak ada数据</td>';
+            let detailHtml = attendances.sort((a,b) => new Date(b.date) - new Date(a.date)).map(att => { let dept = departments.find(d => d.id === att.dept_id); let person = dept?.personils?.find(p => p.id === att.personil_id); return `<tr><td style="width:25%">${att.date}</td><td style="width:25%">${dept?.name?.toUpperCase() || "?"}</td><td style="width:30%">${person?.name?.toUpperCase() || "?"}</td><td style="width:20%"><span class="badge-${att.status === 'tepat waktu' ? 'hadir' : 'terlambat'}">${att.status === 'tepat waktu' ? 'TEPAT WAKTU' : 'TERLAMBAT'}</span></td>`; }).join('');
+            document.getElementById("detailTableBody").innerHTML = detailHtml || '<tr><td colspan="4" class="loading">Tidak ada数据</td></tr>';
         }
         
-        window.clearRadioGroup = function(radioName) { document.querySelectorAll(`input[name="${radioName}"]`).forEach(radio => radio.checked = false); };
+        window.clearRadioGroup = function(radioName) { 
+            document.querySelectorAll(`input[name="${radioName}"]`).forEach(radio => radio.checked = false); 
+        };
         
         async function renderInputAttendance() {
             let container = document.getElementById("allDeptAttendanceContainer");
             if(!container) return;
             if(!departments.length) { container.innerHTML = "<div style='padding:20px; text-align:center;'>Belum ada departemen</div>"; return; }
+            
             let selectedDate = document.getElementById("attendanceDateGlobal").value;
             if(!selectedDate) selectedDate = new Date().toISOString().slice(0,10);
+            
             let html = "";
             for (let dept of departments) {
-                // --- URUTKAN PERSONIL BERDASARKAN NAMA (A-Z) ---
                 let personils = [...(dept.personils || [])];
                 personils.sort((a, b) => a.name.localeCompare(b.name));
                 
                 let existingNote = await getNoteFromSupabase(selectedDate, dept.id);
                 let noteValue = (existingNote && existingNote !== 'NA') ? existingNote : '';
+                
                 html += `<div class="dept-input-section"><div class="dept-input-header"><h3><i class="fas fa-building"></i> ${dept.name.toUpperCase()}</h3><span style="font-size:0.7rem; color:#64748b;"><i class="fas fa-user-friends"></i> ${personils.length} personil</span></div>`;
+                
                 personils.forEach(person => {
                     let radioName = `status_${dept.id}_${person.id}`;
                     html += `<div style="display:flex; justify-content:space-between; align-items:center; padding:12px 20px; border-bottom:1px solid #e4edf2;"><div style="font-weight:700;"><i class="fas fa-user"></i> ${person.name.toUpperCase()}</div><div style="display:flex; gap:24px; align-items:center;"><label style="display:flex; align-items:center; gap:8px;"><input type="radio" name="${radioName}" value="tepat waktu"> TEPAT WAKTU</label><label style="display:flex; align-items:center; gap:8px;"><input type="radio" name="${radioName}" value="terlambat"> TERLAMBAT</label><button type="button" style="background:#ef4444; padding:4px 12px; font-size:0.7rem; border-radius:20px;" onclick="window.clearRadioGroup('${radioName}')"><i class="fas fa-times"></i> BATAL</button></div></div>`;
                 });
+                
                 html += `<div class="dept-notes"><label><i class="fas fa-pen-alt"></i> Catatan / Alasan (jika departemen TIDAK HADIR semua personilnya)</label><textarea id="note_${dept.id}" placeholder="Contoh: Sedang pelatihan, Sakit, Izin, Dll..." rows="2">${escapeHtml(noteValue)}</textarea></div></div>`;
             }
             container.innerHTML = html;
         }
         
-        function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m])); }
+        function escapeHtml(str) { 
+            if(!str) return ''; 
+            return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m])); 
+        }
         
         async function submitAttendance() {
             let selectedDate = document.getElementById("attendanceDateGlobal").value;
             if(!selectedDate) selectedDate = new Date().toISOString().slice(0,10);
+            
+            // Simpan notes terlebih dahulu
+            let allNotesSaved = true;
             for(let dept of departments) {
                 let allPersonils = dept.personils || [];
                 let anySelected = false;
+                
                 for(let person of allPersonils) {
                     let selectedRadio = document.querySelector(`input[name="status_${dept.id}_${person.id}"]:checked`);
-                    if(selectedRadio) { anySelected = true; break; }
+                    if(selectedRadio) { 
+                        anySelected = true; 
+                        break; 
+                    }
                 }
+                
                 let noteTextarea = document.getElementById(`note_${dept.id}`);
                 let noteValue = noteTextarea ? noteTextarea.value : '';
-                if(!anySelected && allPersonils.length > 0 && (!noteValue || noteValue.trim() === '')) noteValue = 'NA';
-                await saveNoteToSupabase(selectedDate, dept.id, noteValue);
+                
+                if(!anySelected && allPersonils.length > 0 && (!noteValue || noteValue.trim() === '')) {
+                    noteValue = 'NA';
+                }
+                
+                const saved = await saveNoteToSupabase(selectedDate, dept.id, noteValue);
+                if (!saved) allNotesSaved = false;
             }
+            
+            if (!allNotesSaved) {
+                return;
+            }
+            
+            // Hapus attendance lama
             await deleteAttendanceByDate(selectedDate);
+            
+            // Simpan attendance baru
             let submittedCount = 0;
             for(let dept of departments) {
                 for(let person of (dept.personils || [])) {
@@ -437,31 +547,38 @@
                     }
                 }
             }
+            
+            // Refresh data
             attendances = await loadAttendances();
+            departments = await loadDepartments();
             await renderDashboard();
+            
+            // Reset form
             document.querySelectorAll('#allDeptAttendanceContainer input[type="radio"]').forEach(radio => radio.checked = false);
             document.querySelectorAll('#allDeptAttendanceContainer textarea').forEach(textarea => textarea.value = '');
+            
             let totalPersonil = departments.reduce((sum, d) => sum + (d.personils?.length || 0), 0);
-            let successDiv = document.getElementById("successMessageInput");
-            let successText = document.getElementById("successTextInput");
-            successText.innerHTML = `✅ Berhasil! ${submittedCount} dari ${totalPersonil} personil diinput. Catatan tersimpan.`;
-            successDiv.style.display = "flex";
-            setTimeout(() => { successDiv.style.display = "none"; }, 3500);
+            showSuccess(`✅ Berhasil! ${submittedCount} dari ${totalPersonil} personil diinput. Catatan tersimpan.`);
+            
             await renderInputAttendance();
         }
         
         async function renderManagement() {
             let parentSel = document.getElementById("parentDeptSelect");
             parentSel.innerHTML = '<option value="">--Pilih Departemen--</option>' + departments.map(d => `<option value="${d.id}">${d.name.toUpperCase()}</option>`).join('');
+            
             let listDiv = document.getElementById("deptManagementList");
             let html = "";
+            
             departments.forEach(dept => {
                 html += `<div style="background:#fff; border-radius:20px; padding:16px; margin-bottom:16px; border:1px solid #e2e8f0;"><div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; margin-bottom:12px;"><b style="font-size:1.1rem; color:#0e6b5e;">📁 ${dept.name.toUpperCase()}</b><button class="delete-dept-btn" data-deptid="${dept.id}" style="background:#dc2626; color:white; padding:4px 12px; border-radius:20px; border:none; cursor:pointer;">Hapus Dept</button></div><div>${(dept.personils || []).map(p => `<span style="background:#f0f9fa; padding:4px 12px; border-radius:40px; display:inline-block; margin:4px;">${p.name.toUpperCase()} <button data-deptid="${dept.id}" data-personilid="${p.id}" class="delete-personil-btn" style="background:none; border:none; color:#dc2626; cursor:pointer;">✖</button></span>`).join('')}</div><div style="margin-top:12px; display:flex; gap:8px;"><input type="text" id="inline_${dept.id}" placeholder="Nama personil baru" style="flex:1;"><button data-deptid="${dept.id}" class="add-personil-inline" style="background:#0e6b5e; padding:4px 12px; border-radius:20px;">Tambah</button></div></div>`;
             });
+            
             listDiv.innerHTML = html;
-            document.querySelectorAll(".delete-dept-btn").forEach(btn => btn.onclick = async () => { if(confirm('Hapus departemen ini?')) { await deleteDepartmentById(btn.dataset.deptid); await refreshEverything(); } });
-            document.querySelectorAll(".delete-personil-btn").forEach(btn => btn.onclick = async () => { let dept = departments.find(d => d.id === btn.dataset.deptid); if(dept) { dept.personils = (dept.personils || []).filter(p => p.id !== btn.dataset.personilid); await updateDepartment(dept.id, { personils: dept.personils }); await refreshEverything(); } });
-            document.querySelectorAll(".add-personil-inline").forEach(btn => btn.onclick = async () => { let inp = document.getElementById(`inline_${btn.dataset.deptid}`); let name = inp.value.trim(); if(name) { let dept = departments.find(d => d.id === btn.dataset.deptid); if(dept) { dept.personils = [...(dept.personils || []), { id: crypto.randomUUID(), name: name.toUpperCase() }]; await updateDepartment(dept.id, { personils: dept.personils }); await refreshEverything(); inp.value = ""; } } });
+            
+            document.querySelectorAll(".delete-dept-btn").forEach(btn => { btn.onclick = async () => { if(confirm('Hapus departemen ini?')) { await deleteDepartmentById(btn.dataset.deptid); await refreshEverything(); } }; });
+            document.querySelectorAll(".delete-personil-btn").forEach(btn => { btn.onclick = async () => { let dept = departments.find(d => d.id === btn.dataset.deptid); if(dept) { dept.personils = (dept.personils || []).filter(p => p.id !== btn.dataset.personilid); await updateDepartment(dept.id, { personils: dept.personils }); await refreshEverything(); } }; });
+            document.querySelectorAll(".add-personil-inline").forEach(btn => { btn.onclick = async () => { let inp = document.getElementById(`inline_${btn.dataset.deptid}`); let name = inp.value.trim(); if(name) { let dept = departments.find(d => d.id === btn.dataset.deptid); if(dept) { dept.personils = [...(dept.personils || []), { id: crypto.randomUUID(), name: name.toUpperCase() }]; await updateDepartment(dept.id, { personils: dept.personils }); await refreshEverything(); inp.value = ""; } } else { alert('Isi nama personil terlebih dahulu!'); } }; });
         }
         
         async function refreshEverything() {
@@ -475,18 +592,29 @@
         async function loadInitialData() {
             departments = await loadDepartments();
             updateFilterDropdowns();
+            
+            let end = new Date();
+            let start = new Date();
+            start.setDate(start.getDate() - 30);
+            startDate = start.toISOString().slice(0,10);
+            endDate = end.toISOString().slice(0,10);
+            document.getElementById("startDate").value = startDate;
+            document.getElementById("endDate").value = endDate;
             await renderDashboard();
         }
         
+        // Setup event listeners
         document.querySelectorAll(".tab-btn").forEach(btn => {
             btn.onclick = async () => {
                 let tab = btn.dataset.tab;
                 if (tab === 'input' && !isInputAuthorized) { showPasswordModal('input'); return; }
                 if (tab === 'management' && !isManagementAuthorized) { showPasswordModal('management'); return; }
+                
                 document.querySelectorAll(".panel").forEach(p => p.classList.remove("active-panel"));
                 document.getElementById(tab + "Panel").classList.add("active-panel");
                 document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
                 btn.classList.add("active");
+                
                 if (tab === "input") await renderInputAttendance();
                 if (tab === "management") await renderManagement();
                 if (tab === "dashboard") await renderDashboard();
@@ -498,6 +626,7 @@
             if(nm) { await saveDepartment({ id: crypto.randomUUID(), name: nm.toUpperCase(), personils: [] }); await refreshEverything(); document.getElementById("newDeptName").value = ""; }
             else alert("Isi nama departemen!");
         };
+        
         document.getElementById("addPersonilBtn").onclick = async () => {
             let did = document.getElementById("parentDeptSelect").value;
             let nm = document.getElementById("newPersonName").value.trim();
@@ -506,25 +635,33 @@
                 if(dept) { dept.personils = [...(dept.personils || []), { id: crypto.randomUUID(), name: nm.toUpperCase() }]; await updateDepartment(did, { personils: dept.personils }); await refreshEverything(); document.getElementById("newPersonName").value = ""; }
             } else alert("Pilih departemen dan isi nama personil!");
         };
+        
         document.getElementById("refreshDashboardBtn").onclick = async () => {
+            startDate = document.getElementById("startDate").value;
+            endDate = document.getElementById("endDate").value;
             currentFilterDept = document.getElementById("filterDept").value;
             currentFilterPersonil = document.getElementById("filterPersonil").value;
             await renderDashboard();
         };
+        
         document.getElementById("filterDept").onchange = async () => {
             currentFilterDept = document.getElementById("filterDept").value;
             currentFilterPersonil = 'all';
             updateFilterDropdowns();
             await renderDashboard();
         };
+        
         document.getElementById("filterPersonil").onchange = async () => {
             currentFilterPersonil = document.getElementById("filterPersonil").value;
             await renderDashboard();
         };
+        
         document.getElementById("submitAttendanceBtn").onclick = submitAttendance;
         document.getElementById("attendanceDateGlobal").onchange = async () => { if (isInputAuthorized) await renderInputAttendance(); };
+        
         let today = new Date().toISOString().slice(0,10);
         document.getElementById("attendanceDateGlobal").value = today;
+        
         await loadInitialData();
     })();
 </script>
